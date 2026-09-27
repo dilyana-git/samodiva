@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>samodiva</title>
+<meta name="description" content="Dilyana's clearing in the forest: tangled gods, a mosaic tarot, a walkable infinite library, and other small worlds.">
+<meta name="theme-color" content="#0d1a18">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='11' fill='none' stroke='%23d8df9a' stroke-width='2' stroke-dasharray='2 3'/><circle cx='16' cy='16' r='3' fill='%23d8df9a'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0d1a18;      /* forest floor at night */
+    --pine: #16302b;       /* near treeline */
+    --spruce: #1f3d37;     /* far treeline */
+    --birch: #e8e3d2;      /* moonlit bark, main text */
+    --lichen: #9db49a;     /* secondary text, resting glyphs */
+    --firefly: #d8df9a;    /* the one light that moves */
+    --thread: #c0566b;     /* red thread, only for the private door */
+    --display: "IM Fell English", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --text: "Alegreya", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    color-scheme: dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 42%, rgba(232,227,210,.10), transparent 70%),
+      radial-gradient(ellipse 120% 80% at 50% 0%, #142925 0%, var(--night) 60%);
+    background-color: var(--night);
+    color: var(--birch);
+    font-family: var(--text);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--firefly); outline-offset: 4px; border-radius: 2px; }
+
+  /* --- scenery --- */
+  #fireflies { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+  .treeline { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; height: 34vh; min-height: 180px; pointer-events: none; z-index: 0; }
+  .treeline .far { fill: var(--spruce); opacity: .55; }
+  .treeline .near { fill: var(--pine); }
+
+  main { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* --- centre / title --- */
+  .centre { text-align: center; padding: 3.5rem 1.5rem 1.5rem; }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(3.4rem, 9vw, 6.5rem);
+    line-height: .9;
+    letter-spacing: .01em;
+    margin: 0;
+    text-shadow: 0 0 40px rgba(232,227,210,.18);
+  }
+  .cyrillic {
+    font-family: var(--text);
+    font-style: italic;
+    color: var(--lichen);
+    margin: .35rem 0 0;
+    font-size: 1.05rem;
+    letter-spacing: .08em;
+  }
+  .lede { max-width: 30ch; margin: 1.1rem auto 0; color: var(--birch); opacity: .85; }
+  .detail { display: none; }
+
+  /* --- list layout (default, mobile, no-JS) --- */
+  .lights { list-style: none; margin: 1rem auto 0; padding: 0 1.25rem 30vh; max-width: 34rem; display: grid; gap: .35rem; }
+  .light {
+    display: grid; grid-template-columns: 2.2rem 1fr; column-gap: .9rem; align-items: start;
+    padding: .85rem .5rem; text-decoration: none; border-radius: 4px;
+    transition: background-color .25s ease;
+  }
+  .light:hover { background: rgba(216,223,154,.06); }
+  .light > :not(.glyph) { grid-column: 2; }
+  .glyph { grid-column: 1; grid-row: 1 / span 3; width: 2.2rem; height: 2.2rem; color: var(--lichen); transition: color .3s ease, filter .3s ease; }
+  .glyph svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .light:hover .glyph, .light:focus-visible .glyph, .light.is-lit .glyph { color: var(--firefly); filter: drop-shadow(0 0 6px rgba(216,223,154,.7)); }
+  .name { font-family: var(--display); font-size: 1.45rem; line-height: 1.15; display: block; }
+  .desc { display: block; color: var(--lichen); font-size: .98rem; margin-top: .15rem; }
+  .where { display: block; font-style: italic; font-size: .9rem; color: var(--birch); opacity: .55; margin-top: .2rem; }
+  .light.private .glyph { color: var(--thread); }
+  .light.private:hover .glyph, .light.private:focus-visible .glyph { color: var(--thread); filter: drop-shadow(0 0 6px rgba(192,86,107,.7)); }
+  .light.unlit { cursor: default; }
+  .light.unlit .name { opacity: .7; }
+
+  footer { position: relative; z-index: 1; margin-top: auto; text-align: center; padding: 1rem 1.5rem 1.4rem; color: var(--lichen); font-size: .92rem; }
+  footer p { margin: 0; }
+
+  .ring-path { display: none; }
+
+  /* --- ring layout (wide screens, JS on) --- */
+  .ring-mode main { height: 100vh; min-height: 640px; }
+  .ring-mode .grove { position: relative; flex: 1; }
+  .ring-mode .ring-path { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ring-path .grass { fill: none; stroke: var(--lichen); stroke-opacity: .28; stroke-width: 1.4; stroke-dasharray: 1.5 7; stroke-linecap: round; }
+  .ring-path .trace { fill: none; stroke: var(--birch); stroke-opacity: .16; stroke-width: 1; }
+  .ring-mode .centre {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(34ch, 40%); padding: 0; min-height: 13rem;
+    display: grid; place-items: center;
+  }
+  .ring-mode .intro, .ring-mode .detail { grid-area: 1 / 1; transition: opacity .35s ease; }
+  .ring-mode .detail { display: block; opacity: 0; pointer-events: none; }
+  .ring-mode .centre.showing .intro { opacity: 0; }
+  .ring-mode .centre.showing .detail { opacity: 1; }
+  .detail .d-name { font-family: var(--display); font-size: clamp(2.2rem, 3.6vw, 3.2rem); line-height: 1; margin: 0; }
+  .detail .d-desc { margin: .8rem 0 0; }
+  .detail .d-where { margin: .6rem 0 0; font-style: italic; color: var(--lichen); }
+
+  .ring-mode .lights { position: absolute; inset: 0; margin: 0; padding: 0; max-width: none; display: block; }
+  .ring-mode .lights li { position: absolute; left: 0; top: 0; }
+  .ring-mode .light {
+    display: flex; flex-direction: column; align-items: center; gap: .35rem;
+    transform: translate(-50%, -50%); padding: .6rem .8rem; width: 10rem; text-align: center;
+  }
+  .ring-mode .light:hover { background: transparent; }
+  .ring-mode .glyph { width: 2.6rem; height: 2.6rem; }
+  .ring-mode .name { font-size: 1.3rem; }
+  .ring-mode .desc, .ring-mode .where {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  /* one orchestrated moment: the ring is traced, then the dancers take their places */
+  .ring-mode.arriving .trace { stroke-dasharray: 1; stroke-dashoffset: 1; animation: trace 2.2s cubic-bezier(.6,.1,.3,1) forwards; }
+  .ring-mode.arriving .grass { opacity: 0; animation: appear 1.2s ease 1.6s forwards; }
+  .ring-mode.arriving .lights li { opacity: 0; animation: appear .9s ease forwards; animation-delay: calc(.5s + var(--i) * .22s); }
+  @keyframes trace { to { stroke-dashoffset: 0; } }
+  @keyframes appear { to { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .ring-mode.arriving .trace { stroke-dasharray: none; }
+    .ring-mode.arriving .grass, .ring-mode.arriving .lights li { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<canvas id="fireflies" aria-hidden="true"></canvas>
+<svg class="treeline" viewBox="0 0 1600 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <path class="far" d="M-20 400 L-20 330 L-20 330 L-20 330 L-6 316 L-14 291 L-2 277 L-7 252 L2 238 L-1 212 L5 199 L6 173 L9 159 L12 134 L16 159 L19 173 L19 199 L25 212 L23 238 L31 252 L26 277 L38 291 L30 316 L44 330 L36 330 L36 330 L54 318 L42 296 L57 285 L49 263 L61 251 L56 229 L64 218 L62 196 L68 184 L69 162 L72 150 L75 129 L79 150 L82 162 L82 184 L88 196 L86 218 L95 229 L90 251 L101 263 L93 285 L108 296 L97 318 L114 330 L79 330 L79 330 L102 316 L92 291 L109 277 L105 252 L116 238 L117 213 L123 199 L130 174 L136 199 L142 213 L143 238 L155 252 L150 277 L167 291 L157 316 L180 330 L141 330 L141 330 L162 319 L149 297 L167 286 L157 265 L171 253 L165 232 L175 221 L172 200 L179 188 L180 167 L184 155 L188 134 L192 155 L196 167 L196 188 L203 200 L201 221 L211 232 L205 253 L219 265 L209 286 L227 297 L213 319 L234 330 L208 330 L208 330 L228 322 L215 306 L232 298 L223 283 L236 275 L230 259 L240 251 L237 236 L244 228 L245 212 L248 204 L252 189 L256 204 L260 212 L260 228 L267 236 L264 251 L274 259 L268 275 L282 283 L272 298 L289 306 L276 322 L296 330 L261 330 L261 330 L285 315 L274 286 L292 271 L288 243 L300 227 L301 199 L307 184 L314 155 L321 184 L327 199 L329 227 L340 243 L336 271 L354 286 L343 315 L367 330 L344 330 L344 330 L356 317 L349 292 L359 279 L353 255 L361 241 L358 217 L364 204 L362 179 L366 166 L367 142 L369 128 L371 104 L374 128 L376 142 L376 166 L380 179 L378 204 L385 217 L381 241 L389 255 L383 279 L393 292 L386 317 L398 330 L375 330 L375 330 L396 314 L384 283 L402 266 L394 236 L407 219 L404 189 L412 172 L413 142 L418 125 L423 95 L428 125 L433 142 L434 172 L442 189 L439 219 L452 236 L444 266 L462 283 L450 314 L471 330 L444 330 L444 330 L465 316 L452 289 L469 275 L459 249 L473 235 L467 208 L478 194 L475 168 L482 154 L483 127 L486 113 L490 87 L495 113 L498 127 L499 154 L506 168 L503 194 L514 208 L507 235 L521 249 L512 275 L529 289 L516 316 L537 330 L521 330 L521 330 L538 317 L527 293 L541 280 L533 256 L545 243 L540 219 L548 206 L546 182 L552 169 L552 145 L555 132 L559 108 L562 132 L565 145 L565 169 L571 182 L569 206 L577 219 L572 243 L584 256 L576 280 L590 293 L579 317 L596 330 L574 330 L574 330 L598 309 L587 269 L605 248 L601 208 L613 187 L614 148 L620 126 L627 87 L634 126 L640 148 L642 187 L654 208 L649 248 L667 269 L656 309 L680 330 L634 330 L634 330 L652 321 L640 304 L655 295 L647 278 L659 269 L654 252 L663 243 L660 226 L666 217 L667 200 L670 191 L674 174 L677 191 L680 200 L681 217 L687 226 L685 243 L694 252 L688 269 L700 278 L692 295 L707 304 L696 321 L713 330 L690 330 L690 330 L709 321 L697 303 L714 294 L704 276 L718 266 L712 249 L722 239 L719 222 L726 212 L726 195 L730 185 L734 168 L738 185 L741 195 L742 212 L748 222 L746 239 L755 249 L750 266 L763 276 L754 294 L770 303 L758 321 L777 330 L764 330 L764 330 L783 316 L772 291 L787 277 L780 252 L792 238 L789 213 L796 200 L797 174 L801 161 L806 135 L810 161 L814 174 L815 200 L823 213 L820 238 L831 252 L824 277 L840 291 L829 316 L848 330 L827 330 L827 330 L851 311 L840 276 L858 257 L853 222 L865 203 L866 168 L872 150 L879 115 L887 150 L892 168 L894 203 L905 222 L901 257 L918 276 L908 311 L931 330 L916 330 L916 330 L940 311 L930 277 L948 258 L943 223 L955 204 L957 170 L963 151 L971 116 L978 151 L984 170 L986 204 L998 223 L993 258 L1012 277 L1001 311 L1025 330 L1003 330 L1003 330 L1018 319 L1009 297 L1022 286 L1014 265 L1025 253 L1020 232 L1028 221 L1026 199 L1031 188 L1032 167 L1034 155 L1038 134 L1041 155 L1043 167 L1044 188 L1049 199 L1047 221 L1055 232 L1050 253 L1061 265 L1054 286 L1067 297 L1057 319 L1072 330 L1055 330 L1055 330 L1076 321 L1063 305 L1080 296 L1070 280 L1084 271 L1078 255 L1089 246 L1086 230 L1093 222 L1094 205 L1097 197 L1101 180 L1106 197 L1109 205 L1110 222 L1117 230 L1114 246 L1125 255 L1118 271 L1132 280 L1123 296 L1140 305 L1127 321 L1148 330 L1115 330 L1115 330 L1128 319 L1119 299 L1130 288 L1124 268 L1133 257 L1129 236 L1135 225 L1134 205 L1138 194 L1139 174 L1141 163 L1143 143 L1146 163 L1148 174 L1149 194 L1153 205 L1151 225 L1158 236 L1154 257 L1163 268 L1157 288 L1167 299 L1159 319 L1172 330 L1166 330 L1166 330 L1179 314 L1172 284 L1182 267 L1177 237 L1185 221 L1183 191 L1188 175 L1188 144 L1191 128 L1194 98 L1197 128 L1199 144 L1200 175 L1205 191 L1203 221 L1210 237 L1206 267 L1216 284 L1209 314 L1221 330 L1214 330 L1214 330 L1225 317 L1219 294 L1228 281 L1224 258 L1231 245 L1229 222 L1234 210 L1234 186 L1237 174 L1240 150 L1242 174 L1245 186 L1245 210 L1250 222 L1248 245 L1255 258 L1251 281 L1260 294 L1254 317 L1265 330 L1258 330 L1258 330 L1270 312 L1264 278 L1273 260 L1271 227 L1277 209 L1278 175 L1280 157 L1284 124 L1288 157 L1291 175 L1291 209 L1297 227 L1295 260 L1304 278 L1299 312 L1310 330 L1294 330 L1294 330 L1313 316 L1302 291 L1318 277 L1311 251 L1322 237 L1319 212 L1327 198 L1328 172 L1332 159 L1336 133 L1341 159 L1345 172 L1346 198 L1353 212 L1350 237 L1362 251 L1355 277 L1370 291 L1360 316 L1379 330 L1356 330 L1356 330 L1380 316 L1369 289 L1388 275 L1383 248 L1395 234 L1397 207 L1403 193 L1411 167 L1418 193 L1424 207 L1426 234 L1438 248 L1433 275 L1452 289 L1441 316 L1466 330 L1420 330 L1420 330 L1439 312 L1428 279 L1443 262 L1437 229 L1448 211 L1445 178 L1452 161 L1453 128 L1457 110 L1461 77 L1466 110 L1469 128 L1470 161 L1478 178 L1475 211 L1486 229 L1479 262 L1494 279 L1484 312 L1502 330 L1474 330 L1474 330 L1489 315 L1480 287 L1492 272 L1487 243 L1496 228 L1494 200 L1499 185 L1500 157 L1503 142 L1507 113 L1510 142 L1513 157 L1514 185 L1520 200 L1518 228 L1526 243 L1521 272 L1533 287 L1525 315 L1540 330 L1517 330 L1517 330 L1541 313 L1528 281 L1547 264 L1539 232 L1553 215 L1549 183 L1559 165 L1560 134 L1565 116 L1571 84 L1577 116 L1582 134 L1583 165 L1592 183 L1589 215 L1603 232 L1595 264 L1614 281 L1601 313 L1625 330 L1590 330 L1590 330 L1613 320 L1599 301 L1618 291 L1608 272 L1623 262 L1616 243 L1628 233 L1625 214 L1632 204 L1633 185 L1637 175 L1642 156 L1646 175 L1650 185 L1651 204 L1659 214 L1656 233 L1667 243 L1660 262 L1676 272 L1665 291 L1684 301 L1670 320 L1693 330 L1620 330 L1620 400 Z"/>
+  <path class="near" d="M-20 400 L-20 370 L-20 370 L-20 370 L4 352 L-9 319 L10 301 L1 268 L16 250 L12 217 L21 199 L22 166 L27 148 L33 115 L39 148 L44 166 L45 199 L54 217 L51 250 L65 268 L56 301 L76 319 L62 352 L86 370 L55 370 L55 370 L86 359 L67 338 L93 327 L78 306 L99 295 L90 274 L105 263 L101 242 L112 231 L113 210 L118 199 L124 178 L131 199 L136 210 L137 231 L147 242 L143 263 L159 274 L150 295 L171 306 L156 327 L182 338 L162 359 L194 370 L154 370 L154 370 L181 357 L166 332 L188 318 L178 293 L194 280 L190 255 L201 242 L202 217 L207 203 L214 178 L220 203 L226 217 L227 242 L238 255 L234 280 L250 293 L240 318 L262 332 L247 357 L273 370 L233 370 L233 370 L250 353 L239 320 L253 303 L245 271 L257 253 L252 221 L261 204 L258 172 L264 154 L265 122 L268 105 L271 72 L275 105 L278 122 L278 154 L284 172 L282 204 L290 221 L285 253 L297 271 L289 303 L303 320 L292 353 L310 370 L292 370 L292 370 L319 354 L304 325 L325 309 L316 279 L332 263 L327 234 L338 218 L339 188 L345 172 L351 143 L357 172 L363 188 L364 218 L375 234 L370 263 L386 279 L377 309 L398 325 L383 354 L410 370 L384 370 L384 370 L411 354 L399 323 L419 307 L414 277 L427 260 L429 230 L435 214 L443 183 L452 214 L458 230 L460 260 L473 277 L468 307 L488 323 L476 354 L503 370 L484 370 L484 370 L501 355 L493 328 L506 314 L503 287 L511 272 L512 245 L516 231 L522 204 L527 231 L531 245 L532 272 L540 287 L537 314 L550 328 L542 355 L559 370 L541 370 L541 370 L571 357 L552 334 L577 322 L563 298 L583 286 L574 262 L589 250 L585 226 L595 214 L596 190 L601 178 L607 155 L613 178 L618 190 L619 214 L629 226 L625 250 L640 262 L631 286 L651 298 L638 322 L662 334 L644 357 L673 370 L653 370 L653 370 L678 351 L664 316 L684 297 L675 262 L690 244 L686 209 L696 190 L697 155 L702 136 L709 101 L715 136 L720 155 L721 190 L731 209 L727 244 L742 262 L733 297 L753 316 L739 351 L764 370 L714 370 L714 370 L732 351 L722 316 L736 297 L730 261 L740 242 L737 207 L744 188 L745 153 L749 134 L753 99 L757 134 L760 153 L761 188 L768 207 L765 242 L776 261 L770 297 L783 316 L774 351 L791 370 L783 370 L783 370 L817 352 L796 320 L824 302 L808 269 L831 251 L821 219 L838 201 L833 168 L845 150 L846 118 L851 100 L858 67 L865 100 L871 118 L872 150 L883 168 L879 201 L896 219 L886 251 L908 269 L893 302 L921 320 L899 352 L933 370 L879 370 L879 370 L908 348 L895 308 L917 287 L912 246 L926 225 L928 185 L935 163 L944 123 L953 163 L961 185 L962 225 L977 246 L971 287 L993 308 L980 348 L1010 370 L954 370 L954 370 L984 354 L967 324 L991 308 L980 279 L998 263 L993 233 L1005 217 L1007 188 L1013 172 L1020 142 L1027 172 L1033 188 L1034 217 L1046 233 L1041 263 L1059 279 L1049 308 L1072 324 L1056 354 L1085 370 L1044 370 L1044 370 L1077 343 L1062 294 L1087 267 L1081 218 L1097 191 L1099 142 L1107 115 L1117 66 L1127 115 L1136 142 L1138 191 L1154 218 L1148 267 L1172 294 L1158 343 L1191 370 L1136 370 L1136 370 L1168 358 L1150 336 L1176 324 L1165 302 L1184 291 L1179 269 L1192 257 L1193 235 L1200 223 L1208 201 L1216 223 L1222 235 L1224 257 L1237 269 L1232 291 L1251 302 L1239 324 L1265 336 L1247 358 L1280 370 L1264 370 L1264 370 L1287 360 L1273 341 L1292 331 L1281 313 L1297 302 L1290 284 L1301 274 L1298 255 L1306 245 L1307 226 L1311 216 L1315 198 L1320 216 L1324 226 L1325 245 L1332 255 L1329 274 L1341 284 L1334 302 L1349 313 L1339 331 L1358 341 L1343 360 L1366 370 L1328 370 L1328 370 L1355 355 L1340 327 L1362 311 L1352 283 L1369 268 L1365 240 L1376 224 L1377 196 L1383 181 L1390 153 L1396 181 L1402 196 L1403 224 L1414 240 L1410 268 L1427 283 L1417 311 L1439 327 L1424 355 L1452 370 L1410 370 L1410 370 L1443 345 L1429 298 L1453 273 L1447 226 L1463 200 L1465 153 L1474 128 L1484 81 L1494 128 L1502 153 L1504 200 L1520 226 L1514 273 L1539 298 L1524 345 L1557 370 L1498 370 L1498 370 L1526 359 L1511 338 L1533 326 L1523 305 L1540 294 L1536 273 L1547 262 L1549 241 L1554 229 L1561 208 L1568 229 L1574 241 L1575 262 L1587 273 L1582 294 L1599 305 L1589 326 L1612 338 L1596 359 L1625 370 L1603 370 L1603 370 L1622 352 L1611 319 L1626 301 L1620 268 L1631 250 L1628 217 L1636 199 L1637 166 L1640 148 L1645 115 L1650 148 L1653 166 L1654 199 L1662 217 L1659 250 L1670 268 L1664 301 L1679 319 L1668 352 L1687 370 L1620 370 L1620 400 Z"/>
+</svg>
+
+<main>
+  <div class="grove" id="grove">
+    <svg class="ring-path" id="ringPath" aria-hidden="true">
+      <ellipse class="grass" id="grass"/>
+      <ellipse class="trace" id="trace" pathLength="1"/>
+    </svg>
+
+    <div class="centre" id="centre">
+      <div class="intro">
+        <h1>samodiva</h1>
+        <p class="cyrillic" lang="bg">самодива</p>
+        <p class="lede">Bulgarian grandmothers warn you never to step into a samodiva's ring. You already have. I'm Dilyana: by day I build machine-learning systems, and at night I make these. Follow a light.</p>
+      </div>
+      <div class="detail" aria-hidden="true">
+        <p class="d-name" id="dName"></p>
+        <p class="d-desc" id="dDesc"></p>
+        <p class="d-where" id="dWhere"></p>
+      </div>
+    </div>
+
+    <!--
+      Edit projects here. Each <li> is one light in the ring.
+      To add one: copy an <li>, change href, glyph, name, desc and where.
+      For something not live yet, use <span class="light unlit"> instead of <a>.
+    -->
+    <ul class="lights" id="lights">
+      <li><a class="light" href="https://theogony.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="16" cy="6" r="3"/><circle cx="7" cy="24" r="3"/><circle cx="25" cy="24" r="3"/><circle cx="16" cy="19" r="2"/><path d="M14.5 8.6 8.4 21.4M17.5 8.6l6.1 12.8M16 9v8M9.8 24h12.4"/></svg></span>
+        <span class="name">Theogony</span>
+        <span class="desc">I kept losing track of who begot whom, so I drew every Greek god into one tangled, glowing family. Take a tour through the old stories. Egypt and the North are next.</span>
+        <span class="where">theogony.samodiva.space</span>
+      </a></li>
+
+      <li><a class="light" href="https://tarot.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="3" width="16" height="26" rx="1.5"/><path d="M16 9l1.6 4.4L22 15l-4.4 1.6L16 21l-1.6-4.4L10 15l4.4-1.6z"/></svg></span>
+        <span class="name">Arcana</span>
+        <span class="desc">Seventy-eight cards in Byzantine mosaic and Klimt gold, each one a single bright figure against the dark. Lay out a spread and let the cards answer back.</span>
+        <span class="where">tarot.samodiva.space</span>
+      </a></li>
+
+      <li><a class="light" href="https://babel.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 3l11 6.5v13L16 29 5 22.5v-13z"/><path d="M16 9l5.5 3.2v6.6L16 22l-5.5-3.2v-6.6z"/></svg></span>
+        <span class="name">Library of Babel</span>
+        <span class="desc">Borges promised a library holding every book that could ever be written. I built a corner of it you can walk through, one hexagon at a time. Don't bother looking for the index.</span>
+        <span class="where">babel.samodiva.space</span>
+      </a></li>
+
+      <li><a class="light" href="https://hearths.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4c1 5 7 8 7 15a7 7 0 0 1-14 0c0-4 2-6 3-8 1 3 2 4 3.5 4.5C15 11 15 8 16 4z"/><path d="M6 28h20"/></svg></span>
+        <span class="name">Hearths</span>
+        <span class="desc">Nine civilizations and the fires they carried: where ideas were first kindled, and how they travelled across maps and centuries.</span>
+        <span class="where">hearths.samodiva.space</span>
+      </a></li>
+
+      <li><a class="light" href="https://phase.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 4.5A12 12 0 1 0 27.5 20 9.5 9.5 0 0 1 20 4.5z"/><circle cx="16" cy="16" r="14" stroke-dasharray="1.5 4" stroke-opacity=".6"/></svg></span>
+        <span class="name">Phase</span>
+        <span class="desc">Everyone runs on a private clock, and most of us ignore it. Phase listens to how you sleep and tells you what time your body thinks it is.</span>
+        <span class="where">phase.samodiva.space</span>
+      </a></li>
+
+      <li><span class="light unlit">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3h8v5h4v4h5v8h-5v4h-4v5h-8v-5H8v-4H3v-8h5V8h4z"/><circle cx="16" cy="16" r="3.2"/></svg></span>
+        <span class="name">Quyllur Sukha</span>
+        <span class="desc">High in the Andes, a civilization of unicorns keeps its own stars and its own gods. I'm still learning their stories, so the gate stays closed for now.</span>
+        <span class="where">not open yet</span>
+      </span></li>
+
+      <li><a class="light private" href="https://wonderbook.samodiva.space">
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 6h20v20H6z"/><circle cx="16" cy="14" r="3"/><path d="M14.6 16.5 13.5 22h5l-1.1-5.5"/></svg></span>
+        <span class="name">Wonderbook</span>
+        <span class="desc">Photographs from adventures shared with someone I love. This door is locked, and the key is ours.</span>
+        <span class="where">wonderbook.samodiva.space</span>
+      </a></li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Tended by Dilyana, in Sofia.</p>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const grove = document.getElementById('grove');
+  const items = [...document.querySelectorAll('#lights li')];
+  const centre = document.getElementById('centre');
+  const dName = document.getElementById('dName');
+  const dDesc = document.getElementById('dDesc');
+  const dWhere = document.getElementById('dWhere');
+  const grass = document.getElementById('grass');
+  const trace = document.getElementById('trace');
+  const wide = window.matchMedia('(min-width: 900px) and (min-height: 600px)');
+  let arrived = false;
+
+  items.forEach((li, i) => li.style.setProperty('--i', i));
+
+  function layout() {
+    const ring = wide.matches;
+    root.classList.toggle('ring-mode', ring);
+    if (!ring) { items.forEach(li => { li.style.left = li.style.top = ''; }); return; }
+    const w = grove.clientWidth, h = grove.clientHeight;
+    const cx = w / 2, cy = h / 2;
+    const rx = Math.min(w * 0.40, 560), ry = Math.min(h * 0.38, 300);
+    [grass, trace].forEach(e => { e.setAttribute('cx', cx); e.setAttribute('cy', cy); e.setAttribute('rx', rx); e.setAttribute('ry', ry); });
+    const n = items.length;
+    items.forEach((li, i) => {
+      const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
+      li.style.left = (cx + rx * Math.cos(a)) + 'px';
+      li.style.top = (cy + ry * Math.sin(a)) + 'px';
+    });
+    if (!arrived) {
+      arrived = true;
+      root.classList.add('arriving');
+      setTimeout(() => root.classList.remove('arriving'), 4200);
+    }
+  }
+
+  function show(li) {
+    const name = li.querySelector('.name').textContent;
+    dName.textContent = name;
+    dDesc.textContent = li.querySelector('.desc').textContent;
+    dWhere.textContent = li.querySelector('.where').textContent;
+    centre.classList.add('showing');
+    items.forEach(x => x.firstElementChild.classList.toggle('is-lit', x === li));
+  }
+  function hide() {
+    centre.classList.remove('showing');
+    items.forEach(x => x.firstElementChild.classList.remove('is-lit'));
+  }
+  items.forEach(li => {
+    const el = li.firstElementChild;
+    el.addEventListener('mouseenter', () => wide.matches && show(li));
+    el.addEventListener('mouseleave', hide);
+    el.addEventListener('focus', () => wide.matches && show(li));
+    el.addEventListener('blur', hide);
+  });
+
+  layout();
+  window.addEventListener('resize', layout);
+  wide.addEventListener?.('change', layout);
+
+  /* fireflies: a handful of slow lights, off when reduced motion is requested */
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const cv = document.getElementById('fireflies');
+  const ctx = cv.getContext('2d');
+  let flies = [], W = 0, H = 0, raf = 0;
+  function size() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function seed() {
+    const count = Math.round(Math.min(22, Math.max(9, W / 70)));
+    flies = Array.from({ length: count }, () => ({
+      x: Math.random() * W, y: H * (0.45 + Math.random() * 0.5),
+      a: Math.random() * Math.PI * 2, s: 0.12 + Math.random() * 0.22,
+      p: Math.random() * Math.PI * 2, r: 1 + Math.random() * 1.3
+    }));
+  }
+  function tick(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (const f of flies) {
+      f.a += (Math.random() - 0.5) * 0.12;
+      f.x += Math.cos(f.a) * f.s; f.y += Math.sin(f.a) * f.s * 0.7;
+      if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10;
+      if (f.y < H * 0.3) f.a = Math.PI / 2; if (f.y > H + 10) f.a = -Math.PI / 2;
+      const glow = 0.25 + 0.75 * Math.max(0, Math.sin(t / 1400 + f.p));
+      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 7);
+      g.addColorStop(0, `rgba(216,223,154,${0.55 * glow})`);
+      g.addColorStop(1, 'rgba(216,223,154,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(240,244,200,${0.9 * glow})`;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 0.8, 0, Math.PI * 2); ctx.fill();
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  function startFlies() {
+    cancelAnimationFrame(raf);
+    size(); seed();
+    if (!reduce.matches) raf = requestAnimationFrame(tick); else ctx.clearRect(0, 0, W, H);
+  }
+  startFlies();
+  window.addEventListener('resize', startFlies);
+  reduce.addEventListener?.('change', startFlies);
+})();
+</script>
+</body>
+</html>
